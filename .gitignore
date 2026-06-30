@@ -1,0 +1,36 @@
+# Toolchain binary (too large for GitHub)
+*.tar.xz
+*.tar.gz
+
+# Vivado generated runs/cache/sim
+**/.runs/
+**/.cache/
+**/.sim/
+**/.hw/
+**/.gen/
+**/.ip_user_files/
+**/.xil/
+**/.Xil/
+*.jou
+*.log
+*.str
+*.pb
+*.dcp
+*.ltx
+*.mcs
+
+# Build artifacts
+*.o
+*.elf
+*.bin
+obj/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/

@@ -1,0 +1,174 @@
+附录A：Verilog宏定义使用
+  不管是使用高级语言进行软件开发，还是使用HDL进行硬件设计，都要尽量遵循代码可配置的原则。对于常量或参数，应当在代码中使用宏定义的方式来引用。使用宏定义，不仅可以保证代码具有良好的可配置性，还能提高代码的规范性和可读性。
+
+  应用宏定义的典型例子是控制器。控制器需要生成许多控制信号，每个控制信号的位宽、作用各不相同。在编写控制器内部逻辑时，使用宏定义完成信号的赋值，能够使得代码更方便阅读、更容易为人所理解，而且有利于代码维护。
+
+  一般地，建议把宏定义全部放在一个独立的头文件（param.vh或defines.vh），避免宏定义散落在各个文件而造成混乱。
+
+  宏定义的使用方法是：通过`define关键字定义宏参数，如下列代码所示。
+
+
+// file: param.vh
+`ifndef CPU_PARAM
+`define CPU_PARAM
+
+    // syntax: `define <macro name> <parameter>
+    `define ADD     3'b000
+    `define SUB     3'b001
+    `define OR      3'b010
+    `define AND     3'b011
+    ......
+
+    `define STATE_IDLE 4'b0001
+    `define STATE_WRIT 4'b0010
+    `define STATE_WORK 4'b0100
+    `define STATE_RETU 4'b1000
+    ......
+
+`endif
+  在.v文件中，通过`include param.vh包含头文件，并使用`符号即可使用宏定义，比如`ADD。
+
+1. 安装WSL2
+  首先，确保已在BIOS中开启了CPU虚拟化功能。开启后，可在任务管理器中看到如图B-1所示的信息。
+
+
+图B-1 在任务管理器查看是否已开启CPU虚拟化功能
+关于开启CPU虚拟化 
+
+  不同型号电脑的BIOS可能不同，开启虚拟化的具体操作可能也不相同，请自行使用搜索引擎搜索或自行探索具体的开启方法。
+
+  在任务栏搜索框搜索“PowerShell”，或在开始菜单找到PowerShell，右键选择 以管理员权限 打开，并在其中执行以下命令：
+
+命令1：
+
+dism /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+命令2：
+
+dism /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+  命令较长，容易输入错误。建议点击代码块右侧的复制按钮以复制命令，并在PowerShell中单击鼠标右键粘贴后再执行。
+
+命令说明 
+
+  命令1用于开启Windows系统的Linux子系统功能（Windows Subsystem for Linux，WSL）。
+
+  命令2用于开启Windows系统的虚拟机功能。若命令2执行出错，则可以尝试执行命令3：
+
+
+Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -NoRestart
+  上述2条命令执行成功后，重启 系统。
+
+  再次 以管理员权限 打开PowerShell，执行命令wsl --set-default-version 2，从而将WSL的默认版本设置成WSL2。
+
+  上述命令均执行成功后，下载并安装WSL2的Linux内核更新包 wsl_update_x64.msi 。
+
+2. 安装Linux发行版
+  在任务栏搜索框搜索“Store”，或在开始菜单找到Microsoft Store。在Microsoft Store中搜索关键词“Linux”，选择你喜好的Linux发行版进行安装。
+
+  若使用最新版本的Windows（内部版本号 
+≥
+ 20262），则也可在PowerShell中执行 wsl --install 命令。该命令将下载安装最新的Linux内核及Ubuntu发行版。
+
+3. 安装交叉编译工具
+  首先，需要将交叉编译工具的压缩包（见实验包readme）文件拷贝到虚拟机中。
+
+  通过快捷键 Win+E 打开文件资源管理器，然后在地址栏输入 \\wsl$ 并回车，或点击左下方的Linux，即可访问虚拟机文件系统，如图B-2所示。
+
+
+图B-2 访问虚拟机文件系统
+  在图B-2中，每个文件夹均代表一个Linux发行版的文件系统，且文件夹与发行版同名。
+
+  双击进入Linux发行版的文件夹，然后再依次双击进入/home/XXX/的用户目录。将交叉编译工具的压缩包拷贝到其中，如图B-3所示。
+
+
+图B-3 拷贝交叉编译工具压缩包至用户目录
+  在开始菜单找到安装好的Linux发行版，单击启动之。
+
+如果已安装了其他发行版
+
+  推荐使用WSL2发行版管理器 wsl2-distro-manager 对已安装的多个发行版进行管理。该工具具有可视化界面，不仅操作方便，而且体积小、解压即用。
+
+  也可在PowerShell中执行wsl -l -v查看所有已安装的发行版，然后执行wsl -d <发行版名称>命令以启动相应的发行版，如图B-4所示。
+
+
+图B-4 查看并启动WSL中已安装的Linux发行版
+  启动发行版后，在其终端执行解压命令（实验室WSL虚拟机的 用户密码、root密码均为123）：
+
+
+LA32R
+MIPS
+
+sudo tar Jxvf loongson-gnu-toolchain-8.3-x86_64-loongarch32r-linux-gnusf-v2.0.tar.xz -C /opt
+  若执行以上命令时，出现“xz: Cannot exec: No such file or directory”的错误信息，则先执行sudo apt-get install xz-utils后再重试。
+
+  接着，需要添加环境变量。
+
+  在Windows文件资源管理器中，进入发行版的用户目录，找到.bashrc文件，如图B-5所示。
+
+
+图B-5 找到.bashrc文件以添加环境变量
+  双击打开.bashrc文件，在最后增加代码：
+
+
+LA32R
+MIPS
+
+export PATH=$PATH:/opt/loongson-gnu-toolchain-8.3-x86_64-loongarch32r-linux-gnusf-v2.0/bin/
+
+  保存文件后，回到Linux发行版的终端，执行source .bashrc命令，使环境变量生效。
+
+  在终端中执行以下命令，如果能看到编译器的版本信息，说明交叉编译环境已安装成功。
+
+
+LA32R
+MIPS
+
+loongarch32r-linux-gnusf-gcc -v
+
+  确保计算机能够访问互联网，然后在终端执行以下命令。
+
+
+sudo apt update
+sudo apt install -y gcc make build-essential
+  对于MIPS，还需在虚拟机终端执行以下命令：
+
+
+sudo ln -s /usr/lib/x86_64-linux-gnu/libmpfr.so.6 /usr/lib/x86_64-linux-gnu/libmpfr.
+
+附录3：
+附录：Cache相关的优化方法
+1. 尽早启动/关键字优先
+  尽早启动（Early Start）和关键字优先（Critical Word First）能够有效降低Cache缺失时的访存代价。
+
+  一般地，Cache发生缺失时，需要通过总线读取主存的一个完整的数据块之后，才能完成Cache块重填并返回数据给CPU。等待缺失处理完成后，CPU后续的几次顺序访存都是命中的。分析该过程不难发现，缺失处理时的访存与后续的指令执行是串行的。事实上，在Cache缺失处理过程中，只要总线从主存读取到CPU当前所需的指令或数据，CPU就可以马上继续执行，而不必等到整个Cache块的所有数据都读取完毕，这就是尽早启动的基本原理。
+
+  关键字优先在尽早启动的基础上进行了进一步优化。当Cache缺失访存时，访存地址通常是CPU访存地址按Cache块大小对齐后的地址。例如，假设CPU访存地址是32'h0000_0234，Cache块大小是256b（32B），则Cache缺失时的访存地址是32'h0000_0220。于是，总线访存时，会从地址32'h0000_0220开始连续读取8个存储单元（偏移量依次为0x0、0x4、0x8、0xC、0x10、0x14、0x18、0x1C）。为了使得CPU能够尽早地执行指令，关键字优先使得总线首先读取偏移量为0x14的存储单元（对应了32'h0000_0234的地址），使得CPU能够尽可能早地开始执行指令。此时，总线访存的偏移地址可能依次为0x14、0x18、0x1C、0x0、0x4、0x8、0xC、0x10。
+
+2. 预译码
+  预译码（Pre-decoding）是一种把指令的部分译码操作提前放到ICache内部的优化技术。通常情况下，主存的访问速率大幅低于CPU执行指令的速率。在Cache缺失访存的过程中，可以利用访存的较长时间掩盖译码操作的较短时间，从而降低流水线译码阶段的复杂度和延迟，进而有利于提升CPU频率。
+
+  预译码通常提前译码出指令的类型（是条件分支指令、直接跳转指令还是顺序执行指令）和立即数，从而提高分支预测的准确率并加快分支跳转指令的执行。
+
+  预译码生成的信息通常会随着指令机器码一同存储在ICache中。当CPU从ICache取指时，就能够获取到指令的预译码信息。
+
+3. 硬件预取
+  硬件预取（Hardware Prefetching）利用总线的空闲时间，提前把CPU将要访问的指令和数据取到Cache中。
+
+  对于指令，硬件预取机制首先通过预译码电路，检测当前被访问的ICache块中是否包含分支跳转指令。如果不包含分支跳转指令，则直接顺序预取下一个ICache块。如果包含分支跳转指令，则根据BPU的预测结果，使用预译码电路提前计算出的目标地址来预取ICache块。其中，预取的目标地址可能需要分情况获取。对于PC相对跳转的指令，只预测跳转方向，目标地址通过PC+偏移量计算得出；对于子程序返回指令，通过返回地址栈RAS预测目标地址；对于其他跳转指令，则只能通过BTB预测目标地址。
+
+  对于数据，则通过一定的数据访问模式检测器，采用按一定步长预取（Stride Prefetching）或其他方式预取数据块。
+
+4. Victim Cache
+  当Cache的空闲空间不足时，如果发生Cache访问缺失，则Cache需要从主存读取一个新的块A，并替换掉一个现有的块B。如果后续不停地间断访问块A和块B，则块A和块B将被不断地在Cache和主存之间换入换出，从而发生频繁的访存操作而导致性能降低。
+
+  为了应对此种情况，可在Cache内部增加一个小容量的全相联映射的Cache，用于缓存被替换的Cache块，即Victim Cache。
+
+  Victim Cache通常只有4~16个Cache块。当一个有效的Cache块要被替换时，把它缓存到Victim Cache，而不是将其直接丢弃。当CPU访问Cache时，同时在Victim Cache中查找数据，如果Cache缺失但Victim Cache命中，则直接把Victim Cache中的数据返回给CPU，从而提高Cache的整体命中率。
+
+  当Victim Cache命中时，把对应的Cache块写入主Cache，并从Victim Cache中回收相应的存储空间。
+
+5. 非阻塞Cache
+  一般地，CPU在Cache发生缺失时需要陷入等待状态，直至缺失处理完成且数据返回后才能继续执行指令。非阻塞Cache（Non-blocking Cache）支持CPU在Cache处理缺失期间，继续访问Cache中的数据。
+
+  非阻塞Cache通常需要配合乱序流水线（或至少后端支持部分乱序）。
+
+  非阻塞Cache通过MSHR（Miss Status Holding Register）来记录当前正在处理哪些缺失。MSHR是小容量（2~4个块）的全相联Cache。当CPU访问Cache发生缺失时，把对应的地址、目标指令（哪条指令发出的访问）、块内偏移等信息记录在MSHR中。并继续由缺失处理电路处理这些缺失访问请求。与此同时，CPU可以继续执行后续的其他指令，这些指令如果能够在Cache中取到所需的数据，则可以继续执行，否则在MSHR中增加新的条目，然后继续执行后续指令。
